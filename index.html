@@ -24,7 +24,8 @@
 
         body {
             background-color: #030a05;
-            background-image: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('images/hacker-bg.jpg');
+            /* আপনার ছবিকে ব্যাকগ্রাউন্ড হিসেবে এখানে সেট করা হয়েছে এবং পাথ ঠিক করা হয়েছে */
+            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('images/about-me.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -528,7 +529,8 @@
         <div class="modal-box about-modal-box">
             <span class="close-btn">&times;</span>
             <div class="about-image-wrapper">
-                <img src="imagesabout-me.jpg" alt="[ERROR: IMAGE_NOT_FOUND]" class="about-image" onerror="this.style.display='none'; this.parentNode.innerHTML='<span style=\'color:#00ff66;font-size:11px;text-align:center;padding:10px;\'>[!] imagesabout-me.jpg NOT FOUND</span>'">
+                <!-- মডালের ভেতরের ছবির পাথও ঠিক করে দেওয়া হয়েছে -->
+                <img src="images/about-me.jpg" alt="[ERROR: IMAGE_NOT_FOUND]" class="about-image" onerror="this.style.display='none'; this.parentNode.innerHTML='<span style=\'color:#00ff66;font-size:11px;text-align:center;padding:10px;\'>[!] images/about-me.jpg NOT FOUND</span>'">
             </div>
             <div class="about-content">
                 <h2 class="modal-heading">> About Me</h2>
