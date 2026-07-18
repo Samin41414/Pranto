@@ -24,8 +24,8 @@
 
         body {
             background-color: #030a05;
-            /* আপনার ছবিকে ব্যাকগ্রাউন্ড হিসেবে এখানে সেট করা হয়েছে এবং পাথ ঠিক করা হয়েছে */
-            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('images/about-me.jpg');
+            /* ব্যাকগ্রাউন্ড ইমেজের নাম hacker-bg.jpg তে আপডেট করা হয়েছে */
+            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('hacker-bg.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -454,7 +454,6 @@
             <a id="aboutMenuBtn">ABOUT</a>
             <a id="blogMenuBtn">BLOG</a>
             <a href="#skills">SKILLS</a>
-            <!-- প্রজেক্ট বাটনে ক্লিক করলে সরাসরি নতুন পেজে নিয়ে যাবে -->
             <a href="projects.html" id="projectsMenuBtn">PROJECTS</a>
             <a id="contactMenuBtn">CONTACT</a>
         </nav>
@@ -529,8 +528,8 @@
         <div class="modal-box about-modal-box">
             <span class="close-btn">&times;</span>
             <div class="about-image-wrapper">
-                <!-- মডালের ভেতরের ছবির পাথও ঠিক করে দেওয়া হয়েছে -->
-                <img src="images/about-me.jpg" alt="[ERROR: IMAGE_NOT_FOUND]" class="about-image" onerror="this.style.display='none'; this.parentNode.innerHTML='<span style=\'color:#00ff66;font-size:11px;text-align:center;padding:10px;\'>[!] images/about-me.jpg NOT FOUND</span>'">
+                <!-- মডালের ভেতরের ছবির নাম hacker-bg.jpg তে আপডেট করা হয়েছে -->
+                <img src="hacker-bg.jpg" alt="[ERROR: IMAGE_NOT_FOUND]" class="about-image" onerror="this.style.display='none'; this.parentNode.innerHTML='<span style=\'color:#00ff66;font-size:11px;text-align:center;padding:10px;\'>[!] hacker-bg.jpg NOT FOUND</span>'">
             </div>
             <div class="about-content">
                 <h2 class="modal-heading">> About Me</h2>
@@ -638,12 +637,12 @@
             window.location.href = "projects.html";
         });
 
-        // ক্রসের (X) উপরে ক্লিক করলে ক্লোজ হওয়ার লজিক
+        // ক্রসের (X) উপরে ক্লিক করলে ক্লোজ হওয়ার লজিক
         document.querySelectorAll('.close-btn').forEach(btn => {
             btn.addEventListener('click', closeAllModals);
         });
 
-        // বাইরে ফাঁকা জায়গায় (Overlay) ক্লিক করলে ক্লোজ হওয়ার লজিক
+        // বাইরে ফাঁকা জায়গায় (Overlay) ক্লিক করলে ক্লোজ হওয়ার লজিক
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
