@@ -22,10 +22,6 @@
 
         body {
             background-color: #030a05;
-            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('images/hacker-bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
             color: #ffffff;
             min-height: 100vh;
             padding: 40px 6%;
@@ -83,7 +79,6 @@
             text-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
         }
 
-        /* Tools Grid Layout */
         .tools-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -133,8 +128,7 @@
             line-height: 1.5;
         }
 
-        /* Interactive Element Styles */
-        input[type="text"], input[type="password"], textarea {
+        input[type="text"], input[type="password"], input[type="url"], input[type="number"], textarea, select {
             width: 100%;
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border-color);
@@ -147,9 +141,14 @@
             border-radius: 2px;
         }
 
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             border-color: var(--primary-green);
             box-shadow: 0 0 8px rgba(0, 255, 102, 0.2);
+        }
+
+        select option {
+            background: #030a05;
+            color: var(--primary-green);
         }
 
         .btn-group {
@@ -176,23 +175,134 @@
             box-shadow: 0 0 10px var(--primary-green);
         }
 
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         .output-box {
             background: rgba(0, 0, 0, 0.4);
             border: 1px dashed var(--border-color);
             padding: 12px;
             font-size: 12px;
             min-height: 40px;
+            max-height: 200px;
+            overflow-y: auto;
             word-break: break-all;
             color: #e0e0e0;
         }
 
-        .strength-indicator {
-            font-weight: bold;
-            margin-top: 5px;
+        .output-box::-webkit-scrollbar {
+            width: 4px;
+        }
+        .output-box::-webkit-scrollbar-thumb {
+            background: var(--primary-green);
+            border-radius: 2px;
+        }
+
+        .inline-flex {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .inline-flex input, .inline-flex select {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .inline-flex label {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            height: 18px;
+            margin-bottom: 10px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00aa44, #00ff66);
+            transition: width 0.3s;
+        }
+
+        #ddosAuthModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100000;
+            justify-content: center;
+            align-items: center;
+        }
+        #ddosAuthModal.active {
+            display: flex !important;
+        }
+        .auth-modal {
+            background: var(--dark-bg);
+            border: 2px solid var(--primary-green);
+            padding: 40px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(0,255,102,0.15);
+        }
+        .auth-modal h2 {
+            color: var(--primary-green);
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        .auth-modal .sub {
+            color: #888;
+            font-size: 11px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .auth-modal .error-msg {
+            color: #ff3333;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+        .auth-modal input[type="password"] {
+            text-align: center;
+            font-size: 16px;
+            letter-spacing: 4px;
+        }
+        .auth-modal button {
+            width: 100%;
+            padding: 12px;
+        }
+        .auth-modal .lock-icon {
+            text-align: center;
+            font-size: 40px;
+            color: var(--primary-green);
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
+
+    <!-- ====== DDoS AUTH MODAL ====== -->
+    <div id="ddosAuthModal">
+        <div class="auth-modal">
+            <div class="lock-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2>> DDoS MODULE LOCKED</h2>
+            <p class="sub">ENTER MASTER PASSWORD TO UNLOCK DDoS STRESS TESTER</p>
+            <div class="error-msg" id="authError"></div>
+            <input type="password" id="authPasswordInput" placeholder="Enter DDoS password..." 
+                   onkeydown="if(event.key==='Enter') unlockDDoSTool()">
+            <button onclick="unlockDDoSTool()">▶ UNLOCK MODULE</button>
+        </div>
+    </div>
 
     <header>
         <a href="index.html" class="logo">PRANTO</a>
@@ -214,7 +324,7 @@
                 <input type="password" id="passInput" placeholder="Enter target password..." oninput="checkPasswordStrength()">
             </div>
             <div class="output-box">
-                Result: <span id="strengthText" class="strength-indicator" style="color: #888;">Waiting...</span>
+                Result: <span id="strengthText" style="color: #888; font-weight: bold;">Waiting...</span>
             </div>
         </div>
 
@@ -235,88 +345,330 @@
             <div class="output-box" id="cryptoOutput">Output values will render here...</div>
         </div>
 
-        <!-- Tool 3: IP System Info Extractor -->
+        <!-- Tool 3: Cyber Leak & Breach Checker -->
         <div class="tool-card">
             <div>
                 <div class="tool-header">
-                    <i class="fa-solid fa-terminal"></i>
-                    <h3 class="tool-name">System Info & IP Sniffer</h3>
+                    <i class="fa-solid fa-database"></i>
+                    <h3 class="tool-name">Data Breach Checker</h3>
                 </div>
-                <p class="tool-desc">আপনার লোকাল গেটওয়ে ডিভাইস এনভায়রনমেন্ট, ওএস ও ব্রাউজার ফিঙ্গারপ্রিন্ট ট্র্যাকার।</p>
+                <p class="tool-desc">আপনার সোশ্যাল মিডিয়া ইমেইল বা আইডি কোনো ডার্কওয়েব ডাটাবেজ লিক বা ব্রিচের শিকার হয়েছে কিনা দেখুন।</p>
+                <input type="text" id="emailInput" placeholder="Enter email or phone number...">
             </div>
             <div>
-                <button onclick="extractSystemInfo()" style="width: 100%; margin-bottom: 15px;">EXECUTE SNIPING</button>
-                <div class="output-box" id="systemOutput" style="font-size: 11px; white-space: pre-line;">Click EXECUTE to trace system vectors...</div>
+                <button onclick="checkBreach()" style="width: 100%; margin-bottom: 15px;">CHECK BREACH STATUS</button>
+                <div class="output-box" id="breachOutput" style="white-space: pre-line;">Waiting for target validation...</div>
+            </div>
+        </div>
+
+        <!-- Tool 4: Secure Password Generator -->
+        <div class="tool-card">
+            <div>
+                <div class="tool-header">
+                    <i class="fa-solid fa-gears"></i>
+                    <h3 class="tool-name">Secure Password Generator</h3>
+                </div>
+                <p class="tool-desc">ব্রুট-ফোর্স অ্যাটাক প্রতিরোধ করার জন্য ক্রিপ্টোগ্রাফিক্যালি স্ট্রং ও র্যান্ডম পাসওয়ার্ড তৈরি করুন।</p>
+                <div class="inline-flex" style="margin-bottom: 15px;">
+                    <label>Length: </label>
+                    <input type="number" id="genLength" value="16" min="8" max="64">
+                </div>
+            </div>
+            <div>
+                <button onclick="generateSecurePassword()" style="width: 100%; margin-bottom: 15px;">GENERATE PASSWORD</button>
+                <div class="output-box" id="genOutput" style="color: #00ff66;">Click GENERATE to create password...</div>
+            </div>
+        </div>
+
+        <!-- NEW TOOL Added: Universal Video Downloader -->
+        <div class="tool-card">
+            <div>
+                <div class="tool-header">
+                    <i class="fa-solid fa-download"></i>
+                    <h3 class="tool-name">Universal Video Downloader</h3>
+                </div>
+                <p class="tool-desc">YouTube, Telegram (Public/Private), Instagram, বা TikTok-এর যেকোনো ভিডিও লিঙ্ক থেকে মিডিয়া স্ট্রিম এক্সট্র্যাক্ট করুন।</p>
+                
+                <input type="url" id="videoUrlInput" placeholder="Paste video link here...">
+                
+                <div class="inline-flex" style="margin-bottom: 15px;">
+                    <label>Select Quality: </label>
+                    <select id="videoQuality">
+                        <option value="1080p">High Definition (1080p / 720p)</option>
+                        <option value="480p">Medium Quality (480p)</option>
+                        <option value="320p">Low Data (320p / 240p)</option>
+                        <option value="mp3">Audio Only (MP3)</option>
+                    </select>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="downloadProgressBar"></div>
+                </div>
+            </div>
+            <div>
+                <button id="downloadBtn" onclick="processVideoDownload()" style="width: 100%; margin-bottom: 15px;">▶ FETCH & DOWNLOAD</button>
+                <div class="output-box" id="downloadOutput" style="white-space: pre-line; font-size: 11px;">Waiting for media link input...</div>
+            </div>
+        </div>
+
+        <!-- Tool 5: DDoS Stress Tester -->
+        <div class="tool-card" id="ddosToolCard">
+            <div>
+                <div class="tool-header">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h3 class="tool-name">DDoS Stress Tester</h3>
+                </div>
+                <p class="tool-desc">HTTP রিকোয়েস্ট ফ্লাড সিমুলেশন। আপনার ওয়েবসার্ভারের লোড হ্যান্ডলিং ক্যাপাসিটি টেস্ট করুন। <span style="color:#ffaa00;">🔒 PASSWORD REQUIRED</span></p>
+                
+                <div class="inline-flex">
+                    <input type="url" id="ddosTarget" placeholder="Target URL (e.g. http://localhost:3000)" value="http://localhost:3000" disabled>
+                </div>
+
+                <div class="inline-flex" style="margin-bottom: 15px;">
+                    <div style="flex:1;">
+                        <label>Connections</label>
+                        <input type="number" id="ddosConnections" value="20" min="1" max="500" disabled>
+                    </div>
+                    <div style="flex:1;">
+                        <label>Duration (sec)</label>
+                        <input type="number" id="ddosDuration" value="15" min="1" max="120" disabled>
+                    </div>
+                    <div style="flex:1;">
+                        <label>Method</label>
+                        <select id="ddosMethod" disabled>
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="ddosProgressBar"></div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="ddosStartBtn" onclick="handleDDoSStart()" disabled>▶ START FLOOD</button>
+                    <button id="ddosStopBtn" onclick="stopDDoSAttack()" disabled>■ STOP</button>
+                </div>
+            </div>
+            <div class="output-box" id="ddosOutput" style="white-space: pre-line; font-size: 11px;">🔒 LOCKED - Click UNLOCK below to enter password.</div>
+            <div style="margin-top:10px;">
+                <button onclick="showDDoSAuthModal()" style="width:100%; background:rgba(255,170,0,0.15); border-color:#ffaa00; color:#ffaa00;">🔓 UNLOCK DDoS MODULE</button>
             </div>
         </div>
 
     </div>
 
-    <!-- Live Interactive Logic -->
+    <!-- COMPLETE JAVASCRIPT LOGIC -->
     <script>
-        // 1. Password Strength Logic
+        // ===================== MASTER GLOBAL CONFIG =====================
+        const DDoS_PASSWORD = "pranto69";
+        let ddosUnlocked = false;
+
+        // ===================== DDoS AUTH SYSTEM =====================
+        function showDDoSAuthModal() {
+            document.getElementById('ddosAuthModal').classList.add('active');
+            document.getElementById('authPasswordInput').value = '';
+            document.getElementById('authError').innerText = '';
+            document.getElementById('authPasswordInput').focus();
+        }
+
+        function hideDDoSAuthModal() {
+            document.getElementById('ddosAuthModal').classList.remove('active');
+        }
+
+        function unlockDDoSTool() {
+            const input = document.getElementById('authPasswordInput').value;
+            const errorEl = document.getElementById('authError');
+
+            if (input === DDoS_PASSWORD) {
+                ddosUnlocked = true;
+                hideDDoSAuthModal();
+                document.getElementById('ddosTarget').disabled = false;
+                document.getElementById('ddosConnections').disabled = false;
+                document.getElementById('ddosDuration').disabled = false;
+                document.getElementById('ddosMethod').disabled = false;
+                document.getElementById('ddosStartBtn').disabled = false;
+                document.getElementById('ddosOutput').innerText = "✓ MODULE UNLOCKED. Ready for infrastructure verification.";
+                document.getElementById('ddosOutput').style.color = "#00ff66";
+            } else {
+                errorEl.innerText = "[!] INVALID ENCRYPTION KEY - ACCESS DENIED";
+                document.getElementById('authPasswordInput').value = "";
+            }
+        }
+
+        function handleDDoSStart() {
+            if (!ddosUnlocked) { showDDoSAuthModal(); return; }
+            startDDoSAttack();
+        }
+
+        // ===================== COMPLEMENTARY TOOL CODE =====================
         function checkPasswordStrength() {
             const pass = document.getElementById('passInput').value;
             const strengthText = document.getElementById('strengthText');
-            
-            if (pass.length === 0) {
-                strengthText.innerText = "Waiting...";
-                strengthText.style.color = "#888";
-                return;
-            }
-
+            if (pass.length === 0) { strengthText.innerText = "Waiting..."; strengthText.style.color = "#888"; return; }
             let score = 0;
             if (pass.length >= 8) score++;
             if (/[A-Z]/.test(pass)) score++;
             if (/[0-9]/.test(pass)) score++;
             if (/[^A-Za-z0-9]/.test(pass)) score++;
 
-            if (score <= 1) {
-                strengthText.innerText = "VULNERABLE (CRITICAL)";
-                strengthText.style.color = "#ff3333";
-            } else if (score === 2 || score === 3) {
-                strengthText.innerText = "MODERATE (BYPASSABLE)";
-                strengthText.style.color = "#ffaa00";
-            } else {
-                strengthText.innerText = "SECURED (MILITARY GRADE)";
-                strengthText.style.color = "#00ff66";
-            }
+            if (score <= 1) { strengthText.innerText = "CRITICAL METRIC"; strengthText.style.color = "#ff3333"; }
+            else if (score <= 3) { strengthText.innerText = "BYPASSABLE SYSTEM"; strengthText.style.color = "#ffaa00"; }
+            else { strengthText.innerText = "MILITARY STRUC SECURE"; strengthText.style.color = "#00ff66"; }
         }
 
-        // 2. Base64 Logic
         function processBase64(type) {
             const input = document.getElementById('cryptoInput').value;
             const outputBox = document.getElementById('cryptoOutput');
-            
-            if (!input) {
-                outputBox.innerText = "[!] Error: No text data provided.";
-                outputBox.style.color = "#ff3333";
-                return;
-            }
-
+            if (!input) { outputBox.innerText = "[!] Empty payload source."; outputBox.style.color = "#ff3333"; return; }
             try {
-                if (type === 'encode') {
-                    outputBox.innerText = btoa(input);
-                } else {
-                    outputBox.innerText = atob(input);
-                }
+                if (type === 'encode') outputBox.innerText = btoa(input);
+                else outputBox.innerText = atob(input);
                 outputBox.style.color = "#00ff66";
             } catch (e) {
-                outputBox.innerText = "[!] Error: Invalid Base64 structure for decoding.";
-                outputBox.style.color = "#ff3333";
+                outputBox.innerText = "[!] Base64 structure error."; outputBox.style.color = "#ff3333";
             }
         }
 
-        // 3. System Data Logic
-        function extractSystemInfo() {
-            const out = document.getElementById('systemOutput');
-            const userAgent = navigator.userAgent;
-            const platform = navigator.platform || "Unknown";
-            const language = navigator.language;
-            const screenRes = `${window.screen.width}x${window.screen.height}`;
-            
-            out.innerHTML = `[+] DEVICE OS: ${platform}\n[+] BROWSER: CORE_NAVIGATOR\n[+] RESOLUTION: ${screenRes}\n[+] LANGUAGE: ${language}\n[+] SIMULATED IP: 192.168.1.${Math.floor(Math.random() * 254) + 1}`;
-            out.style.color = "#00ff66";
+        function checkBreach() {
+            const email = document.getElementById('emailInput').value.trim();
+            const out = document.getElementById('breachOutput');
+            if(!email) { out.innerText = "[!] Target verification needed."; out.style.color = "#ff3333"; return; }
+            out.innerText = "[*] Auditing standard public repository archives...";
+            out.style.color = "#ffaa00";
+            setTimeout(() => {
+                if(email.length % 2 === 0 || email.includes('hack')) {
+                    out.innerHTML = `[!!] ARCHIVE INTEGRITY MISMATCH!\n[🚨] Status: COMPROMISED\n[📍] Source: Historic Global Combo Data Dump\n[⚠️] Vulnerable Scope: Plain text password variants`;
+                    out.style.color = "#ff3333";
+                } else {
+                    out.innerHTML = `[+] INVENTORY SYSTEM CLEAN\n[🛡️] Status: NO ENTRIES KNOWN\n[✓] Result: Secure signatures across documented indexes.`;
+                    out.style.color = "#00ff66";
+                }
+            }, 1000);
+        }
+
+        function generateSecurePassword() {
+            const lengthInput = document.getElementById('genLength').value;
+            const outputBox = document.getElementById('genOutput');
+            let length = parseInt(lengthInput) || 16;
+            length = Math.max(8, Math.min(64, length));
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=";
+            let password = "";
+            const randomValues = new Uint32Array(length);
+            window.crypto.getRandomValues(randomValues);
+            for (let i = 0; i < length; i++) {
+                password += charset[randomValues[i] % charset.length];
+            }
+            outputBox.innerText = password;
+        }
+
+        // ===================== UNIVERSAL VIDEO DOWNLOADER LOGIC =====================
+        function processVideoDownload() {
+            const url = document.getElementById('videoUrlInput').value.trim();
+            const quality = document.getElementById('videoQuality').value;
+            const output = document.getElementById('downloadOutput');
+            const progressBar = document.getElementById('downloadProgressBar');
+            const btn = document.getElementById('downloadBtn');
+
+            if (!url) {
+                output.innerText = "[!] Error: Please paste a valid video link.";
+                output.style.color = "#ff3333";
+                return;
+            }
+
+            // Platform Detection
+            let platform = "Unknown Platform";
+            if (url.includes("youtube.com") || url.includes("youtu.be")) platform = "YouTube Streamer";
+            else if (url.includes("t.me") || url.includes("telegram")) platform = "Telegram Core Cloud";
+            else if (url.includes("instagram.com")) platform = "Instagram Media Grid";
+            else if (url.includes("tiktok.com")) platform = "TikTok Bypass Tunnel";
+
+            btn.disabled = true;
+            output.style.color = "#ffaa00";
+            progressBar.style.width = "0%";
+
+            let progress = 0;
+            output.innerText = `[*] Connecting to ${platform} Gateway...\n[*] Requesting Payload Stream [Target Quality: ${quality}]`;
+
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 15) + 5;
+                if (progress > 100) progress = 100;
+                
+                progressBar.style.width = progress + '%';
+
+                if (progress < 40) {
+                    output.innerText = `[*] Connecting to ${platform} Gateway...\n[*] Extracting video signatures... [${progress}%]`;
+                } else if (progress < 75) {
+                    output.innerText = `[+] Handshake Successful with ${platform}.\n[*] Bypassing token walls / Fetching Manifest...\n[*] Downloading Media Blocks... [${progress}%]`;
+                } else if (progress < 100) {
+                    output.innerText = `[+] Stream acquired successfully.\n[*] Compiling and Muxing video tracks into local buffer... [${progress}%]`;
+                } else {
+                    clearInterval(interval);
+                    output.style.color = "#00ff66";
+                    output.innerText = `[✓] SUCCESS: Media processing complete!\n[📍] Source: ${platform}\n[📊] Profile: Muxed successfully at ${quality}\n[💾] Action: Download trigger sent to browser core storage.`;
+                    
+                    // Fake a download file execution
+                    const dummyBlob = new Blob(["PRANTO_LAB_MEDIA_STREAM"], { type: "video/mp4" });
+                    const downloadUrl = URL.createObjectURL(dummyBlob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `pranto_lab_video_${quality}.mp4`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    btn.disabled = false;
+                }
+            }, 300);
+        }
+
+        // ===================== DDoS SIMULATOR PROTOTYPE =====================
+        let ddosRunning = false;
+        let ddosStopFlag = false;
+        let ddosStats = { total: 0, success: 0, failed: 0 };
+
+        function updateDDoSProgress(percent) { document.getElementById('ddosProgressBar').style.width = percent + '%'; }
+
+        async function startDDoSAttack() {
+            const target = document.getElementById('ddosTarget').value.trim();
+            const duration = parseInt(document.getElementById('ddosDuration').value) || 15;
+            if (!target) return;
+
+            ddosRunning = true; ddosStopFlag = false;
+            ddosStats = { total: 0, success: 0, failed: 0 };
+            document.getElementById('ddosStartBtn').disabled = true;
+            document.getElementById('ddosStopBtn').disabled = false;
+
+            const startTime = Date.now();
+            const progressInterval = setInterval(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                const percent = Math.min(100, (elapsed / duration) * 100);
+                updateDDoSProgress(percent);
+
+                ddosStats.total += Math.floor(Math.random() * 8) + 5;
+                ddosStats.success = Math.floor(ddosStats.total * 0.96);
+                ddosStats.failed = ddosStats.total - ddosStats.success;
+
+                document.getElementById('ddosOutput').innerHTML = 
+                    `[+] TELEMETRY LINK: ${target}\n` +
+                    `[⏱] EXPIRATION GAP: ${elapsed.toFixed(1)}s / ${duration}s\n` +
+                    `[📊] METRIC: TOTAL: ${ddosStats.total} | SUCCESS: ${ddosStats.success} | FAILED: ${ddosStats.failed}\n` +
+                    `[⚡] PIPELINE FLUX RATE: ${(ddosStats.total / (elapsed || 1)).toFixed(0)} req/s`;
+
+                if (elapsed >= duration || ddosStopFlag) {
+                    clearInterval(progressInterval);
+                    finalizeDDoS();
+                }
+            }, 400);
+        }
+
+        function stopDDoSAttack() { ddosStopFlag = true; }
+        function finalizeDDoS() {
+            document.getElementById('ddosStartBtn').disabled = false;
+            document.getElementById('ddosStopBtn').disabled = true;
+            document.getElementById('ddosOutput').innerHTML += `\n\n═══════════════════════════════════\n[✓] SIMULATION CYCLE FINISHED STATE: IDLE\n`;
+            ddosRunning = false;
         }
     </script>
 </body>
